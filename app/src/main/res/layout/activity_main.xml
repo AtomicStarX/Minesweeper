@@ -28,7 +28,7 @@
             android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
-        <Button
+        <ImageButton
             android:id="@+id/imageButton"
             android:layout_width="80dp"
             android:layout_height="80dp"

@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -20,17 +21,27 @@ public class MainActivity extends AppCompatActivity {
     private int cols, rows;
     private GridLayout gridLayout;
     private BombMatrix bombMatrix;
+    private boolean gameOver;
+    private ImageButton resetButton;
+    FrameLayout frameLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        resetButton = findViewById(R.id.imageButton);
+
         singleton = singleton.getInstance();
         gridLayout = findViewById(R.id.gridLayout);
         gridLayout.setRowCount(singleton.getNumRows());
         gridLayout.setColumnCount(singleton.getNumCols());
-        bombMatrix = new BombMatrix(this);
-        createButtons();
+        clear();
+        resetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clear();
+            }
+        });
         //showBombs();
 
     }
@@ -41,26 +52,29 @@ public class MainActivity extends AppCompatActivity {
         board = new MineButton[rows][cols];
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                FrameLayout frameLayout = new FrameLayout(this);
+                frameLayout = new FrameLayout(this);
                 BackCell backCell = new BackCell(this);
                 frameLayout.addView(backCell);
                 TextView tv = new TextView(this);
                 tv.setText("" + bombMatrix.getNumber(i, j));
+                tv.setGravity(View.TEXT_ALIGNMENT_CENTER);
                 frameLayout.addView(tv);
                 board[i][j] = new MineButton(this, i, j);
                 frameLayout.addView(board[i][j]);
                 gridLayout.addView(frameLayout);
+
                 board[i][j].setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         MineButton button = (MineButton) v;
                         int row = button.getRow();
                         int col = button.getCol();
-                        if (button.getState() == ButtonState.CLOSED) {
+                        if (button.getState() == ButtonState.CLOSED && !gameOver) {
                             if (bombMatrix.isBomb(row, col)) {
                                 board[row][col].setImageDrawable(getResources().getDrawable(R.drawable.bomb));
                                 board[row][col].setPadding(5, 5, 5, 5);
                                 board[row][col].setScaleType(ImageView.ScaleType.FIT_XY);
+                                gameOver = true;
                             } else {
                                 if (bombMatrix.getNumber(row, col) == 0) {
                                     revealEmptyButtons(row, col);
@@ -131,11 +145,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void clear() {
-        for (int i = 0; i < cols; i++) {
-            for (int j = 0; j < rows; j++) {
-                board[i][j].setState(ButtonState.CLOSED);
-            }
-        }
+        gridLayout.removeAllViews();
+        bombMatrix = new BombMatrix(this);
+        createButtons();
+        gameOver = false;
     }
 
     private void showBombs() {
